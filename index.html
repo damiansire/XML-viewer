@@ -1,0 +1,13 @@
+<div>
+    <textarea id="hola" style="width: 500;height: 500;"></textarea>
+    <div id="renderPlace">
+
+    </div>
+</div>
+
+<script>
+    const parser = new DOMParser();
+    const parserDocument = parser.parseFromString(
+        '<bookstore> <book><title lang="en">Harry Potter</title>  <price>29.99</price> </book> <book>  <title lang="en">Learning XML</title>  <price>39.95</price> </book></bookstore>'
+        , "text/xml")
+</script>
