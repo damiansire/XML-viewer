@@ -1,13 +1,86 @@
-<div>
-    <textarea id="hola" style="width: 500;height: 500;"></textarea>
-    <div id="renderPlace">
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div style="display: flex;">
+        <textarea id="editor" style="width: 500px;height: 500px;"></textarea>
+        <div id="preview" style="font-size: 21px;     padding: 15px;">
+
+        </div>
+        <div id="renderPlace">
+
+        </div>
     </div>
-</div>
 
-<script>
-    const parser = new DOMParser();
-    const parserDocument = parser.parseFromString(
-        '<bookstore> <book><title lang="en">Harry Potter</title>  <price>29.99</price> </book> <book>  <title lang="en">Learning XML</title>  <price>39.95</price> </book></bookstore>'
-        , "text/xml")
-</script>
+    <script>
+
+        var xmlGlobal = "";
+
+        const refreshPreview = (text) => {
+            document.getElementById("preview").innerText = text;
+        }
+
+        const parserXml = (xmlText) => {
+            const parser = new DOMParser();
+            return parser.parseFromString(xmlText, "text/xml")
+        }
+
+        const getXmlNodeDiv = (xmlNode) => {
+            let content = document.createElement("div");
+            content.className = "xmlFather";
+            content.innerText = xmlNode.tagName;
+            return content;
+        }
+
+        const xmlParserData = (xmlText) => {
+            let parsedXml = parserXml(xmlText);
+            for (let index = 0; index < parsedXml.childElementCount; index++) {
+                renderXml(parsedXml.children[index], renderPlaceDiv)
+            }
+        }
+
+        const renderXml = (xmlNode, renderPlace) => {
+            let fatherDivContent = getXmlNodeDiv(xmlNode);
+            renderPlace.appendChild(fatherDivContent);
+            if (xmlNode.childElementCount > 0) {
+                for (let index = 0; index < xmlNode.childElementCount; index++) {
+                    renderXml(xmlNode.children[index], fatherDivContent)
+                }
+            }
+        }
+
+        const clearGui = () => {
+            renderPlaceDiv.innerText = ""
+            document.getElementById("preview").innerText = "";
+        }
+
+        let textArea = document.getElementById("editor");
+        textArea.addEventListener("input", (event) => {
+            clearGui();
+            refreshPreview(textArea.value);
+            xmlParserData(textArea.value)
+        })
+
+
+        let renderPlaceDiv = document.getElementById("renderPlace")
+        let xmlNodeGlobal = "";
+
+
+    </script>
+
+    <style>
+        .xmlFather {
+            border: 1px solid;
+            padding: 50px;
+        }
+    </style>
+</body>
+
+</html>
