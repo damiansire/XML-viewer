@@ -11,12 +11,18 @@
 <body>
     <div style="display: flex;">
         <textarea id="editor" style="width: 500px;height: 500px;"></textarea>
-        <div id="preview" style="font-size: 21px;     padding: 15px;">
+        <div id="preview" style="font-size: 21px;   padding: 15px;width: 500px;height: 500px;">
 
         </div>
         <div id="renderPlace">
 
         </div>
+        <div style="text-align-last: center; width: 100%;">
+            <div id="cy-container">
+                <div id="cy"></div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -65,20 +71,263 @@
         textArea.addEventListener("input", (event) => {
             clearGui();
             refreshPreview(textArea.value);
-            xmlParserData(textArea.value)
+            xmlParserData(textArea.value);
+            generaTreeData(textArea.value);
         })
 
+        class NodeManager {
+            constructor() {
+                this.index = 0;
+                this.nodes = []
+            }
+            addNode(tagName) {
+                let newNode = {
+                    data: {
+                        id: this.index,
+                        text: tagName
+                    }
+                };
+                this.nodes.push(newNode)
+                this.index++;
+                return newNode;
+            }
+        }
+
+        class EdgesManager {
+            constructor() {
+                this.edges = []
+            }
+            addEdges(source, target) {
+                this.edges.push(
+                    {
+                        data: {
+                            color: '#f00',
+                            source: source,
+                            target: target
+                        }
+                    }
+                )
+            }
+        }
+
+        const generaTreeData = (xmlText) => {
+            //xmlText = textArea.value
+            let parsedXml = parserXml(xmlText).children[0];
+            //relationObj = { nodes: [], edges: [] };
+            let nodeManager = new NodeManager();
+            let edgesManager = new EdgesManager();
+
+            getData(parsedXml, nodeManager, edgesManager);
+            console.log(nodeManager.nodes)
+            console.log(edgesManager.edges)
+            return {
+                nodes: [
+                    {
+                        data: {
+                            id: '0',
+                            text: 'menu-restaurante'
+                        }
+                    }], // nodes
+                edges: [{
+                    data: {
+                        color: '#f00',
+                        source: '0',
+                        target: '1'
+                    }
+                }
+                ]
+            }
+        }
+
+
+        const getData = (xmlNode, nodeManager, edgesManager, parentIndex) => {
+            let newNode = nodeManager.addNode(xmlNode.tagName); //id = 1
+            if (parentIndex) {
+                edgesManager.addEdges(parentIndex, newNode.data.id)
+            }
+            console.log(newNode)
+            for (let index = 0; index < xmlNode.childElementCount; index++) {
+                getData(xmlNode.children[index], nodeManager, edgesManager, newNode.data.id)
+            }
+        }
 
         let renderPlaceDiv = document.getElementById("renderPlace")
         let xmlNodeGlobal = "";
 
+        textArea.innerText = "<menu-restaurante> <comida> <name>Belgian Waffles</name> <price>$5.95</price> </comida> <comida> <name>Belgian Waffles</name> <price>$5.95</price> </comida> </menu-restaurante>"
+        clearGui();
+        refreshPreview(textArea.value);
+        xmlParserData(textArea.value);
+        var xmlText = textArea.value;
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            var win = window;
+
+            window.addEventListener('resize', function (event) {
+                resize();
+            }, true);
+
+            function resize() {
+                document.getElementById("cy-container").style.height = `${window.innerHeight - 130}px`;
+                cy.resize();
+            }
+
+            setTimeout(resize, 0);
+
+            var nodeOptions = {
+                normal: {
+                    bgColor: 'grey'
+                },
+                selected: {
+                    bgColor: 'yellow'
+                }
+            };
+
+            var edgeOptions = {
+                selected: {
+                    lineColor: 'yellow'
+                }
+            };
+
+            var cy = window.cy = cytoscape({
+                container: document.getElementById('cy'),
+
+                minZoom: 0.1,
+                maxZoom: 100,
+                zoom: 0.8,
+                wheelSensitivity: 0.1,
+
+                // panningEnabled: false,
+                //boxSelectionEnabled: true,
+                //autounselectify: false,
+                //selectionType: 'additive',
+                //autoungrabify: true,
+
+                layout: {
+                    name: 'dagre'
+                },
+
+                style: [{
+                    selector: 'node',
+                    style: {
+                        'width': 200,
+                        'height': 200,
+                        'content': 'data(text)',
+                        //          'text-opacity': 0.5,
+                        'text-valign': 'center',
+                        'color': 'white',
+                        'background-color': nodeOptions.normal.bgColor,
+                        'text-outline-width': 2,
+                        'text-outline-color': '#222'
+                    }
+                },
+
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 10,
+                        'target-arrow-shape': 'triangle',
+                        'line-color': 'data(color)',
+                        'target-arrow-color': '#9dbaea'
+                    }
+                },
+
+                {
+                    selector: ':selected',
+                    style: {
+                        'background-color': 'yellow',
+                        'line-color': 'yellow',
+                        'target-arrow-color': 'black',
+                        'source-arrow-color': 'black',
+                    }
+                },
+
+                {
+                    selector: 'edge:selected',
+                    style: {
+                        'width': 20
+                    }
+                }
+                ],
+
+                elements: {
+                    //selectable: false, 
+                    grabbable: false,
+                    nodes: [
+                        {
+                            data: {
+                                id: '0',
+                                text: 'menu-restaurante'
+                            }
+                        }, {
+                            data: {
+                                id: '1',
+                                text: 'comida'
+                            }
+
+                        }, {
+                            data: {
+                                id: '2',
+                                text: 'name'
+                            }
+
+                        },
+                        {
+                            data: {
+                                id: '3',
+                                text: 'price'
+                            }
+
+                        }], // nodes
+                    edges: [{
+                        data: {
+                            color: '#f00',
+                            source: '0',
+                            target: '1'
+                        }
+                    },
+                    {
+                        data: {
+                            color: '#f00',
+                            source: '1',
+                            target: '2'
+                        }
+                    },
+                    {
+                        data: {
+                            color: '#f00',
+                            source: '1',
+                            target: '3'
+                        }
+                    }
+                    ] // edges
+                } // elements
+            }); // cytoscape
+
+
+
+        }); // ready
+
 
     </script>
+    <div id="cytograph"></div>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/2.5.4/cytoscape.min.js"></script>
+    <script src="https://cdn.rawgit.com/cpettitt/dagre/v0.7.4/dist/dagre.min.js"></script>
+    <script src="https://cdn.rawgit.com/cytoscape/cytoscape.js-dagre/1.1.2/cytoscape-dagre.js"></script>
 
     <style>
         .xmlFather {
             border: 1px solid;
             padding: 50px;
+        }
+
+        #cy {
+            border: solid;
+            border-width: 1;
+            height: 100%;
         }
     </style>
 </body>
