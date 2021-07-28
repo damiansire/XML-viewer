@@ -118,34 +118,15 @@
             let edgesManager = new EdgesManager();
 
             getData(parsedXml, nodeManager, edgesManager);
-            console.log(nodeManager.nodes)
-            console.log(edgesManager.edges)
-            return {
-                nodes: [
-                    {
-                        data: {
-                            id: '0',
-                            text: 'menu-restaurante'
-                        }
-                    }], // nodes
-                edges: [{
-                    data: {
-                        color: '#f00',
-                        source: '0',
-                        target: '1'
-                    }
-                }
-                ]
-            }
+            createTree(nodeManager.nodes, edgesManager.edges);
         }
 
 
         const getData = (xmlNode, nodeManager, edgesManager, parentIndex) => {
             let newNode = nodeManager.addNode(xmlNode.tagName); //id = 1
-            if (parentIndex) {
+            if (parentIndex !== undefined) {
                 edgesManager.addEdges(parentIndex, newNode.data.id)
             }
-            console.log(newNode)
             for (let index = 0; index < xmlNode.childElementCount; index++) {
                 getData(xmlNode.children[index], nodeManager, edgesManager, newNode.data.id)
             }
@@ -160,154 +141,110 @@
         xmlParserData(textArea.value);
         var xmlText = textArea.value;
 
-        document.addEventListener('DOMContentLoaded', function () {
+        function createTree(nodesArr, edgesArr) {
+            {
 
-            var win = window;
+                var win = window;
 
-            window.addEventListener('resize', function (event) {
-                resize();
-            }, true);
+                window.addEventListener('resize', function (event) {
+                    resize();
+                }, true);
 
-            function resize() {
-                document.getElementById("cy-container").style.height = `${window.innerHeight - 130}px`;
-                cy.resize();
+                function resize() {
+                    document.getElementById("cy-container").style.height = `${window.innerHeight - 130}px`;
+                    cy.resize();
+                }
+
+                setTimeout(resize, 0);
+
+                var nodeOptions = {
+                    normal: {
+                        bgColor: 'grey'
+                    },
+                    selected: {
+                        bgColor: 'yellow'
+                    }
+                };
+
+                var edgeOptions = {
+                    selected: {
+                        lineColor: 'yellow'
+                    }
+                };
+
+                var cy = window.cy = cytoscape({
+                    container: document.getElementById('cy'),
+
+                    minZoom: 0.1,
+                    maxZoom: 100,
+                    zoom: 0.8,
+                    wheelSensitivity: 0.1,
+
+                    // panningEnabled: false,
+                    //boxSelectionEnabled: true,
+                    //autounselectify: false,
+                    //selectionType: 'additive',
+                    //autoungrabify: true,
+
+                    layout: {
+                        name: 'dagre'
+                    },
+
+                    style: [{
+                        selector: 'node',
+                        style: {
+                            'width': 200,
+                            'height': 200,
+                            'content': 'data(text)',
+                            //          'text-opacity': 0.5,
+                            'text-valign': 'center',
+                            'color': 'white',
+                            'background-color': nodeOptions.normal.bgColor,
+                            'text-outline-width': 2,
+                            'text-outline-color': '#222'
+                        }
+                    },
+
+                    {
+                        selector: 'edge',
+                        style: {
+                            'width': 10,
+                            'target-arrow-shape': 'triangle',
+                            'line-color': 'data(color)',
+                            'target-arrow-color': '#9dbaea'
+                        }
+                    },
+
+                    {
+                        selector: ':selected',
+                        style: {
+                            'background-color': 'yellow',
+                            'line-color': 'yellow',
+                            'target-arrow-color': 'black',
+                            'source-arrow-color': 'black',
+                        }
+                    },
+
+                    {
+                        selector: 'edge:selected',
+                        style: {
+                            'width': 20
+                        }
+                    }
+                    ],
+
+                    elements: {
+                        //selectable: false, 
+                        grabbable: false,
+                        nodes: nodesArr, // nodes
+                        edges: edgesArr // edges
+                    } // elements
+                }); // cytoscape
+
+
+
             }
-
-            setTimeout(resize, 0);
-
-            var nodeOptions = {
-                normal: {
-                    bgColor: 'grey'
-                },
-                selected: {
-                    bgColor: 'yellow'
-                }
-            };
-
-            var edgeOptions = {
-                selected: {
-                    lineColor: 'yellow'
-                }
-            };
-
-            var cy = window.cy = cytoscape({
-                container: document.getElementById('cy'),
-
-                minZoom: 0.1,
-                maxZoom: 100,
-                zoom: 0.8,
-                wheelSensitivity: 0.1,
-
-                // panningEnabled: false,
-                //boxSelectionEnabled: true,
-                //autounselectify: false,
-                //selectionType: 'additive',
-                //autoungrabify: true,
-
-                layout: {
-                    name: 'dagre'
-                },
-
-                style: [{
-                    selector: 'node',
-                    style: {
-                        'width': 200,
-                        'height': 200,
-                        'content': 'data(text)',
-                        //          'text-opacity': 0.5,
-                        'text-valign': 'center',
-                        'color': 'white',
-                        'background-color': nodeOptions.normal.bgColor,
-                        'text-outline-width': 2,
-                        'text-outline-color': '#222'
-                    }
-                },
-
-                {
-                    selector: 'edge',
-                    style: {
-                        'width': 10,
-                        'target-arrow-shape': 'triangle',
-                        'line-color': 'data(color)',
-                        'target-arrow-color': '#9dbaea'
-                    }
-                },
-
-                {
-                    selector: ':selected',
-                    style: {
-                        'background-color': 'yellow',
-                        'line-color': 'yellow',
-                        'target-arrow-color': 'black',
-                        'source-arrow-color': 'black',
-                    }
-                },
-
-                {
-                    selector: 'edge:selected',
-                    style: {
-                        'width': 20
-                    }
-                }
-                ],
-
-                elements: {
-                    //selectable: false, 
-                    grabbable: false,
-                    nodes: [
-                        {
-                            data: {
-                                id: '0',
-                                text: 'menu-restaurante'
-                            }
-                        }, {
-                            data: {
-                                id: '1',
-                                text: 'comida'
-                            }
-
-                        }, {
-                            data: {
-                                id: '2',
-                                text: 'name'
-                            }
-
-                        },
-                        {
-                            data: {
-                                id: '3',
-                                text: 'price'
-                            }
-
-                        }], // nodes
-                    edges: [{
-                        data: {
-                            color: '#f00',
-                            source: '0',
-                            target: '1'
-                        }
-                    },
-                    {
-                        data: {
-                            color: '#f00',
-                            source: '1',
-                            target: '2'
-                        }
-                    },
-                    {
-                        data: {
-                            color: '#f00',
-                            source: '1',
-                            target: '3'
-                        }
-                    }
-                    ] // edges
-                } // elements
-            }); // cytoscape
-
-
-
-        }); // ready
+        }
 
 
     </script>
